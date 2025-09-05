@@ -24,7 +24,7 @@
     footer{text-align:center;padding:15px;background:#141414;color:#aaa;margin-top:20px;font-size:.85rem;}
 
     /* Admin Panel */
-    #adminPanel{display:none;background:#1a1a1a;padding:20px;}
+    #adminPanel{display:none;margin-top:15px;background:#1a1a1a;padding:20px;border-radius:6px;}
     #adminPanel input,#adminPanel textarea{width:100%;margin:6px 0;padding:8px;border-radius:4px;border:none;}
     #adminPanel button{background:#e50914;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;}
   </style>
@@ -40,7 +40,8 @@
 
 <main>
   <section id="home" class="page"></section>
-  <section id="settings" class="page hidden">
+
+  <section id="settings" class="page hidden" style="padding:20px;">
     <h2>Settings</h2>
     <button onclick="adminLogin()">🔑 Admin Login</button>
     <div id="adminPanel">

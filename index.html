@@ -3,28 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎬 CineXpress by Chandan Kar</title>
+  <title>Cinexpress – Movies by Chandan Kar</title>
   <style>
-    body{margin:0;font-family:sans-serif;background:#111;color:#eee}
-    header{background:#222;padding:10px;display:flex;justify-content:space-between;align-items:center}
-    header h1{margin:0;font-size:1.2rem;color:#e50914}
-    nav a{color:#eee;margin:0 6px;text-decoration:none}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:12px}
-    .card{background:#1d1d1d;padding:8px;border-radius:8px;box-shadow:0 0 4px #000}
-    .card img{width:100%;border-radius:4px}
-    footer{text-align:center;padding:15px;background:#222;margin-top:20px;font-size:.8rem}
-    .hidden{display:none}
-    .form{padding:12px;background:#1d1d1d;margin:12px;border-radius:8px}
-    .form input,.form textarea,.form select{width:100%;margin:6px 0;padding:6px;border-radius:4px;border:none}
-    button{background:#e50914;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer}
-    table{width:100%;border-collapse:collapse;margin-top:10px}
-    th,td{border:1px solid #444;padding:6px;text-align:left}
-    th{background:#333}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0d0d0d;color:#fff;}
+    header{background:#141414;padding:15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+    header h1{margin:0;font-size:22px;color:#e50914;}
+    header nav a{color:#fff;text-decoration:none;margin:0 10px;font-weight:bold;}
+    header nav a:hover{color:#e50914;}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:15px;padding:20px;}
+    .card{background:#1a1a1a;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.6);transition:transform .2s;}
+    .card:hover{transform:scale(1.03);}
+    .card img{width:100%;height:270px;object-fit:cover;}
+    .card .info{padding:10px;}
+    .card h4{margin:0 0 6px;font-size:16px;color:#fff;}
+    .card p{margin:0;font-size:13px;color:#aaa;height:30px;overflow:hidden;}
+    .card a{display:inline-block;margin-top:8px;padding:6px 10px;background:#e50914;color:#fff;font-size:13px;border-radius:4px;text-decoration:none;}
+    .card a:hover{background:#b20710;}
+
+    footer{text-align:center;padding:15px;background:#141414;color:#aaa;margin-top:20px;font-size:.85rem;}
+
+    /* Admin Panel */
+    #adminPanel{display:none;background:#1a1a1a;padding:20px;}
+    #adminPanel input,#adminPanel textarea{width:100%;margin:6px 0;padding:8px;border-radius:4px;border:none;}
+    #adminPanel button{background:#e50914;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;}
   </style>
 </head>
 <body>
 <header>
-  <h1>CineXpress</h1>
+  <h1>Cinexpress</h1>
   <nav>
     <a href="#home" onclick="showPage('home')">Home</a>
     <a href="#settings" onclick="showPage('settings')">Settings</a>
@@ -36,32 +43,35 @@
   <section id="settings" class="page hidden">
     <h2>Settings</h2>
     <button onclick="adminLogin()">🔑 Admin Login</button>
-    <div id="adminPanel" class="hidden">
+    <div id="adminPanel">
       <h3>Add Movie</h3>
-      <div class="form">
-        <input id="movieTitle" placeholder="Movie Title">
-        <textarea id="movieDesc" placeholder="Description"></textarea>
-        <input id="movieLink" placeholder="Google Drive Link">
-        <input type="file" id="posterFile" accept="image/*">
-        <button onclick="addMovie()">Add Movie</button>
-      </div>
+      <input id="movieTitle" placeholder="Movie Title">
+      <textarea id="movieDesc" placeholder="Description"></textarea>
+      <input id="movieLink" placeholder="Google Drive Link">
+      <input type="file" id="posterFile" accept="image/*">
+      <button onclick="addMovie()">Add Movie</button>
       <div id="movieTable"></div>
     </div>
   </section>
 </main>
 
 <footer>
-  © 2025 CineXpress by Chandan Kar – Free Professional HTML Movie Website
+  © 2025 Cinexpress by Chandan Kar
 </footer>
 
 <script>
 const KEY_MOVIES="movies_upload";
 let movies=JSON.parse(localStorage.getItem(KEY_MOVIES)||"[]");
-const ADMIN_PASS="admin123";
+const ADMIN_PASS="Bristi@@@";
 let adminUnlocked=false;
 
 function saveAll(){localStorage.setItem(KEY_MOVIES,JSON.stringify(movies));}
-function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');if(id==='home') renderMovies();if(id==='settings' && adminUnlocked) renderMovieTable();}
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  if(id==='home') renderMovies();
+  if(id==='settings' && adminUnlocked) renderMovieTable();
+}
 
 function renderMovies(){
   const home=document.getElementById('home');
@@ -70,7 +80,13 @@ function renderMovies(){
   movies.forEach(m=>{
     const div=document.createElement('div');
     div.className='card';
-    div.innerHTML=`<img src="${m.poster}"><h4>${m.title}</h4><p>${m.desc||''}</p><a href="${m.link}" target="_blank"><button>Download</button></a>`;
+    div.innerHTML=`
+      <img src="${m.poster}">
+      <div class="info">
+        <h4>${m.title}</h4>
+        <p>${m.desc||''}</p>
+        <a href="${m.link}" target="_blank">Download</a>
+      </div>`;
     grid.appendChild(div);
   });
 }
@@ -79,7 +95,7 @@ function adminLogin(){
   const pass=prompt("Enter admin password:");
   if(pass===ADMIN_PASS){
     adminUnlocked=true;
-    document.getElementById('adminPanel').classList.remove('hidden');
+    document.getElementById('adminPanel').style.display="block";
     renderMovieTable();
   }else{alert("Wrong password!");}
 }
@@ -99,7 +115,6 @@ function addMovie(){
     saveAll();
     renderMovies();
     renderMovieTable();
-    alert("Movie added!");
   };
   reader.readAsDataURL(file);
 }

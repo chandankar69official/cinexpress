@@ -2,120 +2,131 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>CineXpress Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineXpress Admin</title>
   <style>
-    body{font-family:sans-serif;background:#111;color:#eee;margin:0;padding:0}
-    header{background:#222;padding:10px;font-size:1.2rem;font-weight:bold}
-    .container{padding:20px}
-    .stats{display:flex;gap:10px;margin-bottom:20px}
-    .stat{background:#1d1d1d;padding:10px;border-radius:8px;flex:1;text-align:center}
-    input,textarea,select,button{width:100%;margin:5px 0;padding:8px;border:none;border-radius:4px}
-    button{background:#e50914;color:#fff;cursor:pointer}
-    .movie-list img{width:60px;height:80px;object-fit:cover}
-    table{width:100%;border-collapse:collapse;margin-top:15px}
-    th,td{border:1px solid #444;padding:6px;text-align:left}
-    th{background:#333}
-    .hidden{display:none}
+    body {font-family: Arial, sans-serif; background:#111; color:#fff; margin:0; padding:20px;}
+    h1 {color: #ff3d3d;}
+    .container {max-width: 900px; margin: auto;}
+    .card {background:#222; padding:20px; border-radius:10px; margin-bottom:20px;}
+    label {display:block; margin-top:10px;}
+    input, textarea, select {width:100%; padding:8px; margin-top:5px; border-radius:5px; border:none;}
+    button {margin-top:15px; padding:10px 15px; background:#ff3d3d; color:#fff; border:none; border-radius:5px; cursor:pointer;}
+    button:hover {background:#e22;}
+    .movie-list img {width:80px; border-radius:5px;}
+    .movie-item {display:flex; align-items:center; gap:10px; background:#333; padding:10px; border-radius:8px; margin-top:10px;}
   </style>
 </head>
 <body>
-<header>🎬 CineXpress Admin</header>
-<div class="container" id="loginPanel">
-  <h2>Admin Login</h2>
-  <input type="password" id="adminPass" placeholder="Enter Password">
-  <button onclick="checkLogin()">Login</button>
-</div>
+  <div class="container">
+    <h1>🎬 CineXpress Admin</h1>
 
-<div class="container hidden" id="adminPanel">
-  <div class="stats">
-    <div class="stat"><div id="totalMovies">0</div><small>Total Movies</small></div>
-    <div class="stat"><div id="totalViews">0</div><small>Total Views</small></div>
-    <div class="stat"><div id="totalDownloads">0</div><small>Total Downloads</small></div>
-    <div class="stat"><div id="avgRating">0.0</div><small>Avg Rating</small></div>
+    <div class="card">
+      <h2>Add / Edit Movie</h2>
+      <label>Poster Image</label>
+      <input type="file" id="posterInput" accept="image/*">
+      
+      <label>Title</label>
+      <input type="text" id="title">
+
+      <label>Description</label>
+      <textarea id="description"></textarea>
+
+      <label>480p Link</label>
+      <input type="text" id="link480">
+
+      <label>720p Link</label>
+      <input type="text" id="link720">
+
+      <label>1080p Link</label>
+      <input type="text" id="link1080">
+
+      <label>4K Link</label>
+      <input type="text" id="link4k">
+
+      <label>Categories (hold Ctrl for multiple)</label>
+      <select id="categories" multiple>
+        <option>Hollywood</option>
+        <option>Bollywood</option>
+        <option>AnimeFlix</option>
+        <option>Web Series</option>
+        <option>Latest</option>
+      </select>
+
+      <button onclick="saveMovie()">💾 Save</button>
+      <button onclick="clearForm()">🧹 Clear</button>
+    </div>
+
+    <div class="card">
+      <h2>Manage Movies</h2>
+      <div class="movie-list" id="movieList"></div>
+    </div>
   </div>
 
-  <h2>Add / Edit Movie</h2>
-  <input type="file" id="posterUpload" accept="image/*">
-  <img id="posterPreview" style="max-height:100px;display:none"><br>
-  <input id="title" placeholder="Movie Title">
-  <textarea id="desc" placeholder="Description"></textarea>
-  <input id="link480" placeholder="480p Google Drive Link">
-  <input id="link720" placeholder="720p Google Drive Link">
-  <input id="link1080" placeholder="1080p Google Drive Link">
-  <input id="link4k" placeholder="4K Google Drive Link">
-  <select id="categories" multiple>
-    <option>Hollywood</option>
-    <option>AnimeFlix</option>
-    <option>Movies</option>
-    <option>Web Series</option>
-    <option>Latest</option>
-  </select>
-  <button onclick="saveMovie()">Save</button>
-  <button onclick="clearForm()">Clear</button>
-  <button onclick="exportData()">Export</button>
-  <input type="file" onchange="importData(event)">
-  
-  <h2>Manage Movies</h2>
-  <div class="movie-list">
-    <table>
-      <thead><tr><th>Poster</th><th>Title</th><th>Actions</th></tr></thead>
-      <tbody id="movieTable"></tbody>
-    </table>
-  </div>
-</div>
+  <script>
+    let movies = JSON.parse(localStorage.getItem("movies")) || [];
 
-<script>
-const ADMIN_PASSWORD = "Bristi@@@";
-let movies = JSON.parse(localStorage.getItem("movies_secure")||"[]");
+    function saveMovie() {
+      const title = document.getElementById("title").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const link480 = document.getElementById("link480").value.trim();
+      const link720 = document.getElementById("link720").value.trim();
+      const link1080 = document.getElementById("link1080").value.trim();
+      const link4k = document.getElementById("link4k").value.trim();
+      const categories = Array.from(document.getElementById("categories").selectedOptions).map(o=>o.value);
 
-function checkLogin(){
-  const pass=document.getElementById('adminPass').value;
-  if(pass===ADMIN_PASSWORD){
-    document.getElementById('loginPanel').classList.add('hidden');
-    document.getElementById('adminPanel').classList.remove('hidden');
-    renderMovies();updateStats();
-  } else alert("Wrong password!");
-}
+      if (!title) { alert("Title is required!"); return; }
 
-let currentPoster="";
-document.getElementById('posterUpload').addEventListener('change',e=>{
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=evt=>{
-    currentPoster=evt.target.result;
-    document.getElementById('posterPreview').src=currentPoster;
-    document.getElementById('posterPreview').style.display="block";
-  }
-  reader.readAsDataURL(file);
-});
+      // Poster handle
+      const posterInput = document.getElementById("posterInput");
+      if (posterInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const poster = e.target.result;
+          addMovie(title, description, link480, link720, link1080, link4k, categories, poster);
+        }
+        reader.readAsDataURL(posterInput.files[0]);
+      } else {
+        addMovie(title, description, link480, link720, link1080, link4k, categories, "");
+      }
+    }
 
-function saveMovie(){
-  const title=document.getElementById('title').value;
-  const desc=document.getElementById('desc').value;
-  const link480=document.getElementById('link480').value;
-  const link720=document.getElementById('link720').value;
-  const link1080=document.getElementById('link1080').value;
-  const link4k=document.getElementById('link4k').value;
-  const cats=[...document.getElementById('categories').selectedOptions].map(o=>o.value);
-  if(!title||!currentPoster){alert("Poster & Title required");return;}
-  const movie={id:Date.now(),poster:currentPoster,title,desc,links:{link480,link720,link1080,link4k},cats,views:0,downloads:0,rating:0};
-  movies.unshift(movie);
-  localStorage.setItem("movies_secure",JSON.stringify(movies));
-  clearForm();renderMovies();updateStats();
-}
+    function addMovie(title, description, link480, link720, link1080, link4k, categories, poster) {
+      const movie = {title, description, links:{link480, link720, link1080, link4k}, categories, poster, views:0, downloads:0, rating:0};
+      movies.push(movie);
+      localStorage.setItem("movies", JSON.stringify(movies));
+      alert("Movie Saved!");
+      clearForm();
+      renderMovies();
+    }
 
-function renderMovies(){
-  const tb=document.getElementById('movieTable');tb.innerHTML="";
-  movies.forEach((m,i)=>{
-    tb.innerHTML+=`<tr><td><img src="${m.poster}"></td><td>${m.title}</td><td><button onclick="delMovie(${i})">Delete</button></td></tr>`;
-  });
-}
-function delMovie(i){if(confirm("Delete?")){movies.splice(i,1);localStorage.setItem("movies_secure",JSON.stringify(movies));renderMovies();updateStats();}}
-function clearForm(){document.querySelectorAll('input,textarea').forEach(e=>e.value="");currentPoster="";document.getElementById('posterPreview').style.display="none";}
-function updateStats(){document.getElementById('totalMovies').innerText=movies.length;document.getElementById('totalViews').innerText=movies.reduce((a,b)=>a+b.views,0);document.getElementById('totalDownloads').innerText=movies.reduce((a,b)=>a+b.downloads,0);document.getElementById('avgRating').innerText=(movies.reduce((a,b)=>a+b.rating,0)/(movies.length||1)).toFixed(1);}
-function exportData(){const blob=new Blob([JSON.stringify(movies)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download="backup.json";a.click();}
-function importData(e){const file=e.target.files[0];const reader=new FileReader();reader.onload=()=>{movies=JSON.parse(reader.result);localStorage.setItem("movies_secure",JSON.stringify(movies));renderMovies();updateStats();};reader.readAsText(file);}
-</script>
+    function clearForm() {
+      document.getElementById("title").value="";
+      document.getElementById("description").value="";
+      document.getElementById("link480").value="";
+      document.getElementById("link720").value="";
+      document.getElementById("link1080").value="";
+      document.getElementById("link4k").value="";
+      document.getElementById("categories").selectedIndex = -1;
+      document.getElementById("posterInput").value="";
+    }
+
+    function renderMovies() {
+      const list = document.getElementById("movieList");
+      list.innerHTML = "";
+      movies.forEach((m,i)=>{
+        list.innerHTML += `
+          <div class="movie-item">
+            <img src="${m.poster || 'https://via.placeholder.com/80'}">
+            <div>
+              <strong>${m.title}</strong><br>
+              <small>${m.categories.join(", ")}</small>
+            </div>
+          </div>`;
+      });
+    }
+
+    renderMovies();
+  </script>
 </body>
 </html>

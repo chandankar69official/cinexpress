@@ -15,59 +15,84 @@
     button:hover {background:#e22;}
     .movie-list img {width:80px; border-radius:5px;}
     .movie-item {display:flex; align-items:center; gap:10px; background:#333; padding:10px; border-radius:8px; margin-top:10px;}
+    .hidden{display:none;}
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🎬 CineXpress Admin</h1>
 
-    <div class="card">
-      <h2>Add / Edit Movie</h2>
-      <label>Poster Image</label>
-      <input type="file" id="posterInput" accept="image/*">
-      
-      <label>Title</label>
-      <input type="text" id="title">
-
-      <label>Description</label>
-      <textarea id="description"></textarea>
-
-      <label>480p Link</label>
-      <input type="text" id="link480">
-
-      <label>720p Link</label>
-      <input type="text" id="link720">
-
-      <label>1080p Link</label>
-      <input type="text" id="link1080">
-
-      <label>4K Link</label>
-      <input type="text" id="link4k">
-
-      <label>Categories (hold Ctrl for multiple)</label>
-      <select id="categories" multiple>
-        <option>Hollywood</option>
-        <option>Bollywood</option>
-        <option>AnimeFlix</option>
-        <option>Web Series</option>
-        <option>Latest</option>
-      </select>
-
-      <button onclick="saveMovie()">💾 Save</button>
-      <button onclick="clearForm()">🧹 Clear</button>
+    <!-- Login -->
+    <div id="loginBox" class="card">
+      <h2>Admin Login</h2>
+      <input type="password" id="password" placeholder="Enter Password">
+      <button onclick="login()">Login</button>
     </div>
 
-    <div class="card">
-      <h2>Manage Movies</h2>
-      <div class="movie-list" id="movieList"></div>
+    <!-- Panel -->
+    <div id="adminPanel" class="hidden">
+      <div class="card">
+        <h2>Add Movie</h2>
+        <label>Poster Image</label>
+        <input type="file" id="posterInput" accept="image/*">
+        
+        <label>Title</label>
+        <input type="text" id="title">
+
+        <label>Description</label>
+        <textarea id="description"></textarea>
+
+        <label>480p Link</label>
+        <input type="text" id="link480">
+
+        <label>720p Link</label>
+        <input type="text" id="link720">
+
+        <label>1080p Link</label>
+        <input type="text" id="link1080">
+
+        <label>4K Link</label>
+        <input type="text" id="link4k">
+
+        <label>Categories (hold Ctrl for multiple)</label>
+        <select id="categories" multiple>
+          <option>Hollywood</option>
+          <option>Bollywood</option>
+          <option>AnimeFlix</option>
+          <option>Web Series</option>
+          <option>Latest</option>
+        </select>
+
+        <button onclick="saveMovie()">💾 Save</button>
+        <button onclick="clearForm()">🧹 Clear</button>
+      </div>
+
+      <div class="card">
+        <h2>Manage Movies</h2>
+        <div class="movie-list" id="movieList"></div>
+      </div>
     </div>
   </div>
 
   <script>
+    const ADMIN_PASSWORD = "Bristi@@@";
     let movies = JSON.parse(localStorage.getItem("movies")) || [];
+
+    function login(){
+      const pass = document.getElementById("password").value;
+      if(pass===ADMIN_PASSWORD){
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("adminPanel").classList.remove("hidden");
+        renderMovies();
+      } else {
+        alert("Wrong Password!");
+      }
+    }
 
     function saveMovie() {
       const title = document.getElementById("title").value.trim();
+      if (!title) { alert("Title is required!"); return; }
+
       const description = document.getElementById("description").value.trim();
       const link480 = document.getElementById("link480").value.trim();
       const link720 = document.getElementById("link720").value.trim();
@@ -75,15 +100,12 @@
       const link4k = document.getElementById("link4k").value.trim();
       const categories = Array.from(document.getElementById("categories").selectedOptions).map(o=>o.value);
 
-      if (!title) { alert("Title is required!"); return; }
-
-      // Poster handle
       const posterInput = document.getElementById("posterInput");
+
       if (posterInput.files.length > 0) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-          const poster = e.target.result;
-          addMovie(title, description, link480, link720, link1080, link4k, categories, poster);
+        reader.onload = e => {
+          addMovie(title, description, link480, link720, link1080, link4k, categories, e.target.result);
         }
         reader.readAsDataURL(posterInput.files[0]);
       } else {
@@ -91,29 +113,29 @@
       }
     }
 
-    function addMovie(title, description, link480, link720, link1080, link4k, categories, poster) {
-      const movie = {title, description, links:{link480, link720, link1080, link4k}, categories, poster, views:0, downloads:0, rating:0};
+    function addMovie(title, description, link480, link720, link1080, link4k, categories, poster){
+      const movie = {id:Date.now(), title, description, links:{link480, link720, link1080, link4k}, categories, poster, views:0, downloads:0, rating:0};
       movies.push(movie);
       localStorage.setItem("movies", JSON.stringify(movies));
-      alert("Movie Saved!");
       clearForm();
       renderMovies();
+      alert("✅ Movie Saved!");
     }
 
-    function clearForm() {
+    function clearForm(){
       document.getElementById("title").value="";
       document.getElementById("description").value="";
       document.getElementById("link480").value="";
       document.getElementById("link720").value="";
       document.getElementById("link1080").value="";
       document.getElementById("link4k").value="";
-      document.getElementById("categories").selectedIndex = -1;
+      document.getElementById("categories").selectedIndex=-1;
       document.getElementById("posterInput").value="";
     }
 
-    function renderMovies() {
-      const list = document.getElementById("movieList");
-      list.innerHTML = "";
+    function renderMovies(){
+      const list=document.getElementById("movieList");
+      list.innerHTML="";
       movies.forEach((m,i)=>{
         list.innerHTML += `
           <div class="movie-item">
@@ -122,11 +144,18 @@
               <strong>${m.title}</strong><br>
               <small>${m.categories.join(", ")}</small>
             </div>
+            <button onclick="deleteMovie(${i})">❌ Delete</button>
           </div>`;
       });
     }
 
-    renderMovies();
+    function deleteMovie(i){
+      if(confirm("Delete this movie?")){
+        movies.splice(i,1);
+        localStorage.setItem("movies", JSON.stringify(movies));
+        renderMovies();
+      }
+    }
   </script>
 </body>
 </html>

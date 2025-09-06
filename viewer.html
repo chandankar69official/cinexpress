@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CineXpress Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body{font-family:sans-serif;background:#111;color:#eee;margin:0;padding:0}
+    header{background:#e50914;padding:10px;font-size:1.4rem;font-weight:bold;text-align:center}
+    .container{padding:10px}
+    .categories{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    .categories button{background:#333;color:#eee;border:none;padding:6px 12px;border-radius:4px;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+    .card{background:#1d1d1d;padding:8px;border-radius:6px}
+    .card img{width:100%;height:240px;object-fit:cover;border-radius:4px}
+    .card h4{margin:6px 0}
+    .links button{margin:2px;padding:4px 8px;font-size:.8rem;border:none;border-radius:4px;cursor:pointer}
+    footer{text-align:center;padding:15px;background:#222;margin-top:20px;font-size:.8rem}
+    .pagination{margin:15px;text-align:center}
+    .pagination button{margin:2px;padding:6px 10px}
+  </style>
+</head>
+<body>
+<header>🎬 CineXpress</header>
+<div class="container">
+  <input id="search" placeholder="Search..." style="width:100%;padding:8px;border-radius:4px;border:none"><br>
+  <div class="categories" id="cats"></div>
+  <div class="grid" id="grid"></div>
+  <div class="pagination" id="pagination"></div>
+</div>
+<footer>© 2025 CineXpress by Chandan Kar</footer>
+
+<script>
+let movies=JSON.parse(localStorage.getItem("movies_secure")||"[]");
+let currentPage=1,perPage=10,filterCat="All",searchText="";
+const catList=["All","Hollywood","AnimeFlix","Movies","Web Series","Latest"];
+
+function renderCats(){const c=document.getElementById('cats');c.innerHTML="";catList.forEach(cat=>{const b=document.createElement('button');b.textContent=cat;b.onclick=()=>{filterCat=cat;currentPage=1;renderMovies();};c.appendChild(b);});}
+function renderMovies(){let arr=movies.slice();if(filterCat!=="All"){arr=arr.filter(m=>m.cats.includes(filterCat));}if(searchText){arr=arr.filter(m=>m.title.toLowerCase().includes(searchText.toLowerCase()));}
+const start=(currentPage-1)*perPage;const pageArr=arr.slice(start,start+perPage);
+const g=document.getElementById('grid');g.innerHTML="";pageArr.forEach(m=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<img src="${m.poster}"><h4>${m.title}</h4><p>${m.desc}</p><div class="links">
+${m.links.link480?`<button onclick="downloadMovie(${m.id},'480p')">480p</button>`:""}
+${m.links.link720?`<button onclick="downloadMovie(${m.id},'720p')">720p</button>`:""}
+${m.links.link1080?`<button onclick="downloadMovie(${m.id},'1080p')">1080p</button>`:""}
+${m.links.link4k?`<button onclick="downloadMovie(${m.id},'4K')">4K</button>`:""}
+</div>`;g.appendChild(d);});
+const totalPages=Math.ceil(arr.length/perPage);const pag=document.getElementById('pagination');pag.innerHTML="";for(let i=1;i<=totalPages;i++){const b=document.createElement('button');b.textContent=i;if(i===currentPage)b.style.background="#e50914";b.onclick=()=>{currentPage=i;renderMovies();};pag.appendChild(b);}}
+function downloadMovie(id,quality){const m=movies.find(x=>x.id===id);if(m){m.downloads++;localStorage.setItem("movies_secure",JSON.stringify(movies));window.open(m.links['link'+quality],'_blank');}}
+document.getElementById('search').addEventListener('input',e=>{searchText=e.target.value;renderMovies();});
+renderCats();renderMovies();
+</script>
+</body>
+</html>
